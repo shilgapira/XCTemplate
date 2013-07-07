@@ -98,7 +98,7 @@ if [[ "${old_prefix}" != "${cfg_prefix}" ]]; then
         echo "        Replacing ${old_name} with ${new_name}"
 
         # Loop over all source or project files and replace mentions of this file/class
-        for target in $(find $cmn_root -type f \( -name *.m -or -name *.h -or -name *.pch -or -name *.pbxproj \)); do
+        for target in $(find $cmn_root -type f \( -name *.m -or -name *.h -or -name *.pch \)); do
             echo "        Replacing in: ${target}"
             target_tmp="${target}_tmp"
 
@@ -108,8 +108,16 @@ if [[ "${old_prefix}" != "${cfg_prefix}" ]]; then
             mv $target_tmp $target
         done
 
-        # Replace file name in path to the new file name
+        # New filename, e.g., PPSourceFile.h
         new_file="$(echo ${old_file} | sedeasy ^${old_name} ${new_name})"
+
+        # Replace file references in project file
+        pbx="${new_project}/project.pbxproj"
+        pbx_tmp="${new_project}/tmp"
+        sedeasy "${old_file}" "${new_file}" $pbx > $pbx_tmp
+        mv $pbx_tmp $pbx
+
+        # Replace file name in path to the new file name
         new_path="$(echo ${path} | sedeasy ${old_file} ${new_file})"
 
         echo "        Renaming ${path} to ${new_path}"
