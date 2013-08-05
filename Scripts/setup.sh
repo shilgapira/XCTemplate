@@ -135,11 +135,20 @@ echo "Updating settings in project: ${pbx}"
 
 echo "    Prefix set to: ${cfg_prefix}"
 sed -e "s/CLASSPREFIX = ${old_prefix};/CLASSPREFIX = ${cfg_prefix};/g" $pbx > $pbx_tmp
+mv $pbx_tmp $pbx
 
 echo "    Organization set to: ${cfg_org}"
-sed -e "s/ORGANIZATIONNAME = \".*\";/ORGANIZATIONNAME = \"${cfg_org}\";/g" $pbx_tmp > $pbx
+sed -e "s/ORGANIZATIONNAME = \".*\";/ORGANIZATIONNAME = \"${cfg_org}\";/g" $pbx > $pbx_tmp
+mv $pbx_tmp $pbx
 
-rm $pbx_tmp
+old_target=`cat ${pbx} | grep remoteInfo | head -1 | sed -e "s/.* = \(.*\);.*/\1/g"`
+new_target=$cfg_name
+
+if [[ "${old_target}" != "${new_target}" ]]; then
+    echo "    Target name changed to: ${new_target}"
+    cat $pbx | sed -e "s/\(.* = \)${old_target}\(.*;.*\)/\1${new_target}\2/g" | sed -e "s/${old_target}\.app\/${old_target}/${new_target}\.app\/${new_target}/g" | sed -e "s/${old_target}\.app/${new_target}\.app/g" | sed -e "s/\(\/\*.*\)${old_target}\(.*\*\/\)/\1${new_target}\2/g" > $pbx_tmp
+    mv $pbx_tmp $pbx
+fi
 
 echo ""
 
