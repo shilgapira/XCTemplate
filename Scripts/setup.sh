@@ -83,7 +83,7 @@ if [[ "${old_prefix}" != "${cfg_prefix}" ]]; then
     echo "Renaming prefixed files:"
 
     # Loop over all project files that start with the current prefix, e.g., /User/.../Template/GSSourceFile.h
-    for path in $(find $cmn_root -type f -name ${old_prefix}*); do
+    for path in $(find $cmn_sources $cmn_scripts -type f -name ${old_prefix}*); do
         echo "    Processing: ${path}"
 
         # Strip path, leaving only filename and extension, e.g., GSSourceFile.h
@@ -98,7 +98,7 @@ if [[ "${old_prefix}" != "${cfg_prefix}" ]]; then
         echo "        Replacing ${old_name} with ${new_name}"
 
         # Loop over all source or project files and replace mentions of this file/class
-        for target in $(find $cmn_root -type f \( -name *.m -or -name *.h -or -name *.pch \)); do
+        for target in $(find $cmn_sources $cmn_scripts -type f \( -name *.m -or -name *.h -or -name *.pch \)); do
             echo "        Replacing in: ${target}"
             target_tmp="${target}_tmp"
 
