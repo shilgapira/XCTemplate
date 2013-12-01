@@ -50,7 +50,12 @@
 }
 
 - (UIViewController *)createInitialViewController {
-    return [UIViewController new];
+    UITableViewController *table = [UITableViewController new];
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:table];
+    
+    table.navigationItem.title = @"Hello World!";
+    
+    return nav;
 }
 
 @end
