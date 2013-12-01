@@ -17,8 +17,11 @@ if [[ "$1" == "--generate" ]]; then
     # Use color from command line or generate one from project name
     color="$2"
     if [[ "$color" == "" ]]; then
-        hue=$(( 0x$(echo -n "${cfg_name}" | openssl md5 | cut -c12-17) % 360 ))
-        color="hsl(${hue},150,130)"
+        hash=$(echo -n "${cfg_name}" | openssl md5 | cut -c12-18)
+        hue=$(( 0x$(echo "$hash" | cut -c1-3) % 360 ))
+        sat=$(( 130 + (0x$(echo "$hash" | cut -c4-5) % 50) ))
+        light=$(( 110 + (0x$(echo "$hash" | cut -c6-7) % 50) ))
+        color="hsl($hue,$sat,$light)"
     fi
 
     echo "Generating placeholder assets for live builds:"
@@ -62,34 +65,23 @@ if [[ "$1" == "--beta" ]]; then
     # Create path for beta images
     mkdir -p $beta
 
-    tag_base=$cmn_scripts/Files/beta_tag
-    tag1="${tag_base}_1.png"
-    tag2="${tag_base}_2.png"
-    tag3="${tag_base}_3.png"
-    tag4="${tag_base}_4.png"
+    tag_base=$cmn_scripts/Files/beta
+    tag_normal="${tag_base}.png"
+    tag_retina="${tag_base}@2x.png"
 
     echo "Composing beta assets from live assets:"
     echo "    Source: $live"
     echo "    Target: $beta"
     echo ""
 
-    # Pick suitable tag and top margin value for each images
-    echo "Composing launch images"
-    composite -gravity northeast -geometry +0+20 $tag2 "${live}/Default.png" "${beta}/Default.png"
-    composite -gravity northeast -geometry +0+40 $tag3 "${live}/Default@2x.png" "${beta}/Default@2x.png"
-    composite -gravity northeast -geometry +0+40 $tag3 "${live}/Default-568h@2x.png" "${beta}/Default-568h@2x.png"
-    composite -gravity northeast -geometry +0+20 $tag3 "${live}/Default-Landscape.png" "${beta}/Default-Landscape.png"
-    composite -gravity northeast -geometry +0+40 $tag4 "${live}/Default-Landscape@2x.png" "${beta}/Default-Landscape@2x.png"
-    composite -gravity northeast -geometry +0+20 $tag3 "${live}/Default-Portrait.png" "${beta}/Default-Portrait.png"
-    composite -gravity northeast -geometry +0+40 $tag4 "${live}/Default-Portrait@2x.png" "${beta}/Default-Portrait@2x.png"
     echo "Composing icons"
-    composite -gravity northeast -geometry +0+0 $tag1 "${live}/Icon.png" "${beta}/Icon.png"
-    composite -gravity northeast -geometry +0+0 $tag2 "${live}/Icon@2x.png" "${beta}/Icon@2x.png"
-    composite -gravity northeast -geometry +0+0 $tag1 "${live}/Icon-ipad.png" "${beta}/Icon-ipad.png"
-    composite -gravity northeast -geometry +0+0 $tag2 "${live}/Icon-ipad@2x.png" "${beta}/Icon-ipad@2x.png"
-    echo "Composing iTunes artwork"
-    composite -gravity northeast -geometry +0+0 $tag3 "png:${live}/iTunesArtwork" "png:${beta}/iTunesArtwork"
-    composite -gravity northeast -geometry +0+0 $tag4 "png:${live}/iTunesArtwork@2x" "png:${beta}/iTunesArtwork@2x"
+    composite -gravity northeast -geometry +0+0 $tag_normal "${live}/Icon.png" "${beta}/Icon.png"
+    composite -gravity northeast -geometry +0+0 $tag_retina "${live}/Icon@2x.png" "${beta}/Icon@2x.png"
+    composite -gravity northeast -geometry +0+0 $tag_normal "${live}/Icon-ipad.png" "${beta}/Icon-ipad.png"
+    composite -gravity northeast -geometry +0+0 $tag_retina "${live}/Icon-ipad@2x.png" "${beta}/Icon-ipad@2x.png"
+
+    echo "Copying images"
+    cp "${live}"/{Default*,iTunesArtwork*} "${beta}"
 
     echo ""
     echo "Done. Use the env script to copy assets to the project."
